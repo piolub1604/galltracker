@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="GallTracker">
+  <meta name="description" content="Prywatny dziennik produktów, tłuszczu i samopoczucia.">
+
+  <title>GallTracker</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <noscript>
+    <div class="noscript">GallTracker wymaga włączonego JavaScriptu.</div>
+  </noscript>
+
+  <div class="app-shell">
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Prywatny dziennik żywieniowy</p>
+        <h1>GallTracker</h1>
+      </div>
+      <button id="themeToggle" class="icon-button" type="button" aria-label="Zmień motyw">◐</button>
+    </header>
+
+    <main id="mainContent">
+      <!-- DZISIAJ -->
+      <section id="view-today" class="view active" aria-labelledby="todayTitle">
+        <div class="hero-card">
+          <div>
+            <p class="eyebrow">Dzisiejsze podsumowanie</p>
+            <h2 id="todayTitle">Jak się dziś czujesz?</h2>
+            <p class="muted">Wpisy pozostają lokalnie na tym urządzeniu.</p>
+          </div>
+          <button class="primary-button compact" type="button" data-go="add">+ Dodaj posiłek</button>
+        </div>
+
+        <div class="metric-grid">
+          <article class="metric-card">
+            <span class="metric-label">Wpisy dzisiaj</span>
+            <strong id="todayEntries">0</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Tłuszcz dzisiaj</span>
+            <strong><span id="todayFat">0,0</span> g</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Bez objawów</span>
+            <strong id="symptomFreeDays">0 dni</strong>
+          </article>
+        </div>
+
+        <article class="card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Ostatnia aktywność</p>
+              <h2>Ostatnie wpisy</h2>
+            </div>
+            <button class="text-button" type="button" data-go="history">Zobacz historię</button>
+          </div>
+          <div id="recentEntries" class="entry-list empty-state">
+            <span class="empty-icon">🥗</span>
+            <p>Nie masz jeszcze żadnych wpisów.</p>
+          </div>
+        </article>
+
+        <article class="notice-card">
+          <strong>Ważne</strong>
+          <p>GallTracker jest dziennikiem obserwacji, a nie narzędziem diagnostycznym. Progi ryzyka w aplikacji są orientacyjne i można je zmienić w ustawieniach.</p>
+        </article>
+      </section>
+
+      <!-- DODAJ -->
+      <section id="view-add" class="view" aria-labelledby="addTitle">
+        <div class="section-heading page-heading">
+          <div>
+            <p class="eyebrow">Nowy wpis</p>
+            <h2 id="addTitle">Dodaj posiłek lub produkt</h2>
+          </div>
+        </div>
+
+        <form id="entryForm" class="card form-card">
+          <div class="field">
+            <label for="productName">Nazwa produktu lub posiłku</label>
+            <input id="productName" name="productName" type="text" autocomplete="off" placeholder="np. Skyr naturalny" required>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="fatPer100">Tłuszcz na 100 g</label>
+              <div class="input-with-unit">
+                <input id="fatPer100" name="fatPer100" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0,0" required>
+                <span>g</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="portion">Zjedzona ilość</label>
+              <div class="input-with-unit">
+                <input id="portion" name="portion" type="number" min="1" step="1" inputmode="decimal" placeholder="100" required>
+                <span>g</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="calculationPreview" class="calculation-card" aria-live="polite">
+            <span>Tłuszcz w porcji</span>
+            <strong><span id="calculatedFat">0,0</span> g</strong>
+            <span id="riskBadge" class="risk-badge neutral">Uzupełnij dane</span>
+          </div>
+
+          <div class="field">
+            <label for="eatenAt">Data i godzina spożycia</label>
+            <input id="eatenAt" name="eatenAt" type="datetime-local" required>
+          </div>
+
+          <div class="field">
+            <span class="label">Sposób przygotowania</span>
+            <div class="chip-grid" role="group" aria-label="Sposób przygotowania">
+              <label class="choice-chip"><input type="radio" name="preparation" value="Surowe / bez obróbki"><span>Surowe</span></label>
+              <label class="choice-chip"><input type="radio" name="preparation" value="Gotowane"><span>Gotowane</span></label>
+              <label class="choice-chip"><input type="radio" name="preparation" value="Pieczone"><span>Pieczone</span></label>
+              <label class="choice-chip"><input type="radio" name="preparation" value="Smażone"><span>Smażone</span></label>
+            </div>
+          </div>
+
+          <fieldset class="field symptom-fieldset">
+            <legend>Samopoczucie po posiłku</legend>
+            <p class="field-help">Możesz uzupełnić je od razu albo później w historii.</p>
+            <div class="feeling-grid">
+              <label class="feeling-option"><input type="radio" name="feeling" value="0"><span><b>😀</b> Brak objawów</span></label>
+              <label class="feeling-option"><input type="radio" name="feeling" value="1"><span><b>🙂</b> Lekki dyskomfort</span></label>
+              <label class="feeling-option"><input type="radio" name="feeling" value="2"><span><b>😕</b> Wzdęcia</span></label>
+              <label class="feeling-option"><input type="radio" name="feeling" value="3"><span><b>😣</b> Ból brzucha</span></label>
+              <label class="feeling-option"><input type="radio" name="feeling" value="4"><span><b>🤢</b> Nudności</span></label>
+              <label class="feeling-option"><input type="radio" name="feeling" value="5"><span><b>🚨</b> Silne objawy</span></label>
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label for="symptomDelay">Po jakim czasie pojawiły się objawy?</label>
+            <select id="symptomDelay" name="symptomDelay">
+              <option value="">Nie dotyczy / nie wiem</option>
+              <option value="Do 30 minut">Do 30 minut</option>
+              <option value="30–60 minut">30–60 minut</option>
+              <option value="1–2 godziny">1–2 godziny</option>
+              <option value="2–4 godziny">2–4 godziny</option>
+              <option value="Powyżej 4 godzin">Powyżej 4 godzin</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="notes">Notatka</label>
+            <textarea id="notes" name="notes" rows="4" placeholder="Np. niewielki ból po około 2 godzinach"></textarea>
+          </div>
+
+          <button class="primary-button" type="submit">Zapisz wpis</button>
+        </form>
+      </section>
+
+      <!-- HISTORIA -->
+      <section id="view-history" class="view" aria-labelledby="historyTitle">
+        <div class="section-heading page-heading">
+          <div>
+            <p class="eyebrow">Dziennik</p>
+            <h2 id="historyTitle">Historia wpisów</h2>
+          </div>
+        </div>
+
+        <div class="card filters-card">
+          <label class="search-field" for="historySearch">
+            <span>Wyszukaj</span>
+            <input id="historySearch" type="search" placeholder="Nazwa produktu">
+          </label>
+          <select id="historyFilter" aria-label="Filtruj według samopoczucia">
+            <option value="all">Wszystkie reakcje</option>
+            <option value="none">Brak objawów</option>
+            <option value="symptoms">Z objawami</option>
+          </select>
+        </div>
+
+        <div id="historyList" class="entry-list empty-state">
+          <span class="empty-icon">📖</span>
+          <p>Historia jest jeszcze pusta.</p>
+        </div>
+      </section>
+
+      <!-- ANALIZA -->
+      <section id="view-analysis" class="view" aria-labelledby="analysisTitle">
+        <div class="section-heading page-heading">
+          <div>
+            <p class="eyebrow">Twoje obserwacje</p>
+            <h2 id="analysisTitle">Analiza tolerancji</h2>
+          </div>
+        </div>
+
+        <div class="metric-grid">
+          <article class="metric-card">
+            <span class="metric-label">Wszystkie wpisy</span>
+            <strong id="totalEntries">0</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Wpisy z objawami</span>
+            <strong id="symptomaticEntries">0</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Średni tłuszcz / porcję</span>
+            <strong><span id="averageFat">0,0</span> g</strong>
+          </article>
+        </div>
+
+        <article class="card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Produkty</p>
+              <h2>Tolerancja produktów</h2>
+            </div>
+          </div>
+          <div id="productStats" class="stats-list empty-state">
+            <span class="empty-icon">📊</span>
+            <p>Dodaj kilka wpisów, aby zobaczyć analizę.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Zależności</p>
+              <h2>Obserwacje</h2>
+            </div>
+          </div>
+          <div id="insightsList" class="insight-list">
+            <p class="muted">Za mało danych do sformułowania obserwacji.</p>
+          </div>
+        </article>
+      </section>
+
+      <!-- USTAWIENIA -->
+      <section id="view-settings" class="view" aria-labelledby="settingsTitle">
+        <div class="section-heading page-heading">
+          <div>
+            <p class="eyebrow">Dane i prywatność</p>
+            <h2 id="settingsTitle">Ustawienia</h2>
+          </div>
+        </div>
+
+        <article class="card">
+          <h3>Orientacyjne progi tłuszczu w porcji</h3>
+          <p class="muted">Służą wyłącznie do oznaczania wpisów kolorami. Nie są poradą medyczną.</p>
+          <div class="field-grid">
+            <div class="field">
+              <label for="greenLimit">Zielony do</label>
+              <div class="input-with-unit"><input id="greenLimit" type="number" min="0" step="0.1" value="5"><span>g</span></div>
+            </div>
+            <div class="field">
+              <label for="yellowLimit">Żółty do</label>
+              <div class="input-with-unit"><input id="yellowLimit" type="number" min="0" step="0.1" value="10"><span>g</span></div>
+            </div>
+          </div>
+          <button id="saveThresholds" class="secondary-button" type="button">Zapisz progi</button>
+        </article>
+
+        <article class="card">
+          <h3>Kopia zapasowa</h3>
+          <p class="muted">Eksport JSON zachowuje komplet danych i umożliwia przeniesienie ich na nowy telefon.</p>
+          <div class="button-stack">
+            <button id="exportJson" class="primary-button" type="button">Eksportuj kopię JSON</button>
+            <label class="secondary-button file-button" for="importJson">Importuj kopię JSON</label>
+            <input id="importJson" class="visually-hidden" type="file" accept="application/json,.json">
+            <button id="exportCsv" class="secondary-button" type="button">Eksportuj dane do CSV</button>
+          </div>
+          <p class="small muted">Ostatnia kopia: <span id="lastBackup">brak</span></p>
+        </article>
+
+        <article class="card danger-zone">
+          <h3>Usuń dane</h3>
+          <p class="muted">Operacji nie można cofnąć bez wcześniejszej kopii zapasowej.</p>
+          <button id="clearData" class="danger-button" type="button">Usuń wszystkie wpisy</button>
+        </article>
+
+        <article class="notice-card">
+          <strong>Prywatność</strong>
+          <p>Dane są przechowywane lokalnie przez przeglądarkę. Kod aplikacji może być publiczny na GitHubie, ale Twoje wpisy nie są dodawane do repozytorium.</p>
+        </article>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Główna nawigacja">
+      <button class="nav-item active" type="button" data-view="today"><span>⌂</span><small>Dzisiaj</small></button>
+      <button class="nav-item" type="button" data-view="add"><span>＋</span><small>Dodaj</small></button>
+      <button class="nav-item" type="button" data-view="history"><span>◷</span><small>Historia</small></button>
+      <button class="nav-item" type="button" data-view="analysis"><span>▥</span><small>Analiza</small></button>
+      <button class="nav-item" type="button" data-view="settings"><span>⚙</span><small>Ustawienia</small></button>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js")
+          .catch(error => console.warn("Nie udało się zarejestrować Service Workera:", error));
+      });
+    }
+  </script>
+</body>
+</html>
